@@ -29,7 +29,16 @@ public class GraphService {
 				return false;
 			}
 			matrix[pointA][pointB] = new GraphEdge(route.getTime());
+			matrix[pointB][pointA] = new GraphEdge(route.getTime());
 		}
+		for (int i = 0; i < matrix.length; i++) {
+			for (int j = 0; j < matrix.length; j++) {
+				if (matrix[i][j] == null) {
+					matrix[i][j] = new GraphEdge(999999);
+				}
+			}
+		}
+
 
 		updateGraph(traffic);
 
@@ -54,6 +63,7 @@ public class GraphService {
 			}
 
 			matrix[pointA][pointB].setJam(trafficNode.getJam());
+			matrix[pointB][pointA].setJam(trafficNode.getJam());
 		}
 		log.info("Graph successfully updated");
 		return true;
@@ -76,6 +86,7 @@ public class GraphService {
 	public List<Point> getPoints() {
 		return points;
 	}
+
 	@Setter
 	@ToString
 	private static class GraphEdge {

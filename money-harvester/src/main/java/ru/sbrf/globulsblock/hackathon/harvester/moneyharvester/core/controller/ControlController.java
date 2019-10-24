@@ -49,7 +49,6 @@ public class ControlController {
 		stringBuilder.append("money");
 		for (int i = 0; i < points.size(); i++) {
 			stringBuilder.append(",");
-			stringBuilder.append("point_");
 			stringBuilder.append(points.get(i).getP());
 		}
 		stringBuilder.append("\n");
