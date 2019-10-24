@@ -17,6 +17,8 @@ import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.rest.Regist
 import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.rest.RoutesResponse;
 import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.rest.TrafficResponse;
 
+import java.util.List;
+
 @Slf4j
 @Component
 public class MySessionHandler extends AbstractWebSocketHandler {
@@ -26,6 +28,8 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 	private GraphService graphService;
 
 	private static String token;
+	public List<String> cars;
+
 	private static int crashes = 0;
 
 	private static boolean isGraphInitialized = false;
@@ -64,6 +68,7 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 				RegisterResponse registerResponse = mapper.readValue(jsonBody, RegisterResponse.class);
 				log.info("Parsed value {}", registerResponse);
 				token = registerResponse.getToken();
+				cars = registerResponse.getCars();
 			} else if (jsonBody.contains("routes") && jsonBody.contains("points") && jsonBody.contains("traffic")) { //КОСТЫЛЬ ДЛЯ НЕВАЛИДНОГО ДЖЕЙСОНА
 				String routesBody = jsonBody.substring(0, jsonBody.indexOf("{ \"points\":"));
 				String pointsBody = jsonBody.substring(jsonBody.indexOf("{ \"points\":"), jsonBody.indexOf("{ \"traffic\":"));

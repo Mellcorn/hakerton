@@ -1,8 +1,48 @@
 package ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.algo;
 
+import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.core.services.GraphService;
+import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.Point;
+
+import java.util.List;
+
 public class DataModel implements CvrpDataSource {
 
-    private final long[][] distanceMatrix = {
+    private final long maxCapacities = 1000000;
+
+    public void updateDistanceFrom(float[][] matrix) {
+
+        long[][] longArray = new long[matrix.length][matrix.length];
+        for (int i = 0 ; i < matrix.length; i++)
+            for (int j = 0 ; j < matrix.length; j++)
+            {
+                longArray[i][j] = (long) matrix[i][j];
+            }
+
+        distanceMatrix = longArray;
+    }
+
+    public void updateСarsFrom(List<String> cars) {
+
+        vehicleNumber = cars.size();
+        long []vapacities = new long[vehicleNumber];
+
+        for(int i = 0; i < vehicleNumber; i++) {
+            vapacities[i] = maxCapacities;
+        }
+    }
+
+    public void updatePointsFrom(List<Point> points) {
+
+        float []demands = new float[points.size()];
+
+        for(int i= 0; i< points.size(); i++ ) {
+            demands[i] = points.get(i).getMoney();
+        }
+
+        //this.demands = demands;
+    }
+
+    private long[][] distanceMatrix = {
             {0, 548, 776, 696, 582, 274, 502, 194, 308, 194, 536, 502, 388, 354, 468, 776, 662},
             {548, 0, 684, 308, 194, 502, 730, 354, 696, 742, 1084, 594, 480, 674, 1016, 868, 1210},
             {776, 684, 0, 992, 878, 502, 274, 810, 468, 742, 400, 1278, 1164, 1130, 788, 1552, 754},
@@ -21,10 +61,10 @@ public class DataModel implements CvrpDataSource {
             {776, 868, 1552, 560, 674, 1050, 1278, 742, 1084, 810, 1152, 274, 388, 422, 764, 0, 798},
             {662, 1210, 754, 1358, 1244, 708, 480, 856, 514, 468, 354, 844, 730, 536, 194, 798, 0},
     };
-    private final long[] demands = {0, 1, 1, 2, 4, 2, 4, 8, 8, 1, 2, 1, 2, 4, 4, 8, 8};
-    private final long[] vehicleCapacities = {15, 15, 15, 15};
-    private final int vehicleNumber = 4;
-    private final int depot = 0;
+    private long[] demands = {0, 1, 1, 2, 4, 2, 4, 8, 8, 1, 2, 1, 2, 4, 4, 8, 8};
+    private long[] vehicleCapacities = {15, 15, 15, 15};
+    private int vehicleNumber = 4;
+    private int depot = 0;
 
     @Override
     public long[][] getDistanceMatrix() {
