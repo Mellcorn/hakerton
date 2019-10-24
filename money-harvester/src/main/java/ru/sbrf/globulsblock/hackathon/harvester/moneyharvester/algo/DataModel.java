@@ -9,7 +9,7 @@ public class DataModel implements CvrpDataSource {
 
     private final long maxCapacities = 1000000;
 
-    public void updateFrom(float[][] matrix) {
+    public void updateDistanceFrom(float[][] matrix) {
 
         long[][] longArray = new long[matrix.length][matrix.length];
         for (int i = 0 ; i < matrix.length; i++)
@@ -21,7 +21,7 @@ public class DataModel implements CvrpDataSource {
         distanceMatrix = longArray;
     }
 
-    public void updateFrom(List<String> cars) {
+    public void updateСarsFrom(List<String> cars) {
 
         vehicleNumber = cars.size();
         long []vapacities = new long[vehicleNumber];
@@ -31,7 +31,7 @@ public class DataModel implements CvrpDataSource {
         }
     }
 
-    public void updateFrom(List<Point> points) {
+    public void updatePointsFrom(List<Point> points) {
 
         float []demands = new float[points.size()];
 
