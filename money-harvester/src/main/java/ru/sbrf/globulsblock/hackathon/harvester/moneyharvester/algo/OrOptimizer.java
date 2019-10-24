@@ -45,7 +45,8 @@ public class OrOptimizer implements CrvpOptimizer {
                 indexAfterRemoving++;
             }
         }
-        int newLength = indexAfterRemoving + 1;
+//        int newLength = indexAfterRemoving + 1;
+        int newLength = indexAfterRemoving;
         nodeMoneyArray = new long[newLength];
         System.arraycopy(moneyArrays, 0, nodeMoneyArray, 0, newLength);
         this.nodePenalties = nodeMoneyArray; // simplification as money expected much bigger then time values

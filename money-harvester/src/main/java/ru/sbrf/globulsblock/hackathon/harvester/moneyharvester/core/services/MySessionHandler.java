@@ -11,13 +11,19 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.AbstractWebSocketHandler;
+import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.algo.OrOptimizer;
+import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.Car;
 import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.rest.CarArrivedResponse;
 import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.rest.PointsResponse;
 import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.rest.RegisterResponse;
 import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.rest.RoutesResponse;
 import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.rest.TrafficResponse;
 
+import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -29,6 +35,8 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 
 	private static String token;
 	public List<String> cars;
+	private List<Car> carsList;
+	private Map<String, Integer[]> carsRoutes;
 
 	private static int crashes = 0;
 
@@ -37,6 +45,8 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 	private static RoutesResponse routesResponse;
 	private static PointsResponse pointsResponse;
 	private static TrafficResponse trafficResponse;
+
+	private static OrOptimizer orOptimizer = new OrOptimizer();
 
 	@Override
 	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -52,7 +62,11 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 	@Override
 	public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) {
 		log.info("accepted message: {}", message.getPayload());
-		parseMessage((String) message.getPayload());
+		try {
+			parseMessage((String) message.getPayload(), session);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -62,7 +76,7 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 		super.afterConnectionClosed(session, status);
 	}
 
-	private void parseMessage(String jsonBody) {
+	private void parseMessage(String jsonBody, WebSocketSession session) throws IOException {
 		try {
 			if (jsonBody.startsWith("{ \"token\"")) {
 				RegisterResponse registerResponse = mapper.readValue(jsonBody, RegisterResponse.class);
@@ -105,9 +119,49 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 		if (routesResponse != null && pointsResponse != null && trafficResponse != null && !isGraphInitialized) { // init graph if have all data
 			graphService.initGraph(pointsResponse.getPoints(), routesResponse.getRoutes(), trafficResponse.getTraffic());
 			isGraphInitialized = true;
+			// Call first calculation
+			orOptimizer.setTimeWindow(new long[] {0, 480});
+			orOptimizer.updatePointsFrom(pointsResponse.getPoints());
+			orOptimizer.updateDistanceFrom(graphService.getGraph());
 
+			carsList = createCars(this.cars);
+			orOptimizer.updateVehiclesFromCars(carsList);
+			carsRoutes = orOptimizer.calculateFastRoute();
+			log.info("Fast routes: {}", carsRoutes);
+			insertRouteToCar(carsList, carsRoutes);
+			//TODO send cars
+			for (Car car : carsList) {
+				sendCar(session, car.getPath().poll(), car.getId());
+			}
 			log.info("Created graph: {}", graphService.getGraph());
 		}
+	}
+
+	private void sendCar(WebSocketSession session, int pointId, String carId) throws IOException {
+		session.sendMessage(new TextMessage("{ \"goto\": " + pointId + ", \"car\": \"" + carId + "\" }"));
+	}
+
+	private void insertRouteToCar(List<Car> cars, Map<String, Integer[]> carsRoutes) {
+		for (Car car : cars) {
+			for (int i = 1; i < carsRoutes.get(car.getId()).length; i++) {
+				car.getPath().add(carsRoutes.get(car.getId())[i]);
+			}
+		}
+	}
+
+	private List<Car> createCars(List<String> carsIds) {
+		ArrayList<Car> result = new ArrayList<>();
+		for (String carsId : carsIds) {
+			result.add(createCar(carsId));
+		}
+		return result;
+	}
+
+	private Car createCar(String id) {
+		return Car.builder()
+				.id(id)
+				.path(new ArrayDeque<>())
+				.build();
 	}
 
 }

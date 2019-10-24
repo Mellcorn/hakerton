@@ -14,8 +14,8 @@ import java.util.Queue;
 @AllArgsConstructor(staticName = "of", access = AccessLevel.PUBLIC)
 public class Car {
 	private String id;
-	private int capacity;
-	private int startPointId;
-	private int endPointId;
+	private int capacity = 1_000_000;
+	private int startPointId = 0;
+	private int endPointId = 1;
 	private Queue<Integer> path;
 }
