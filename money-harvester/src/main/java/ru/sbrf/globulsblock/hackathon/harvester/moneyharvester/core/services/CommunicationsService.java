@@ -7,8 +7,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
+import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.Point;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @Service
@@ -48,5 +50,9 @@ public class CommunicationsService {
 
 	public float[][] getGraph() {
 		return graphService.getGraph();
+	}
+
+	public List<Point> getPoints() {
+		return graphService.getPoints();
 	}
 }

@@ -9,7 +9,7 @@ import lombok.Value;
 @Value
 @Builder
 @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(staticName = "of", access = AccessLevel.PUBLIC)
 public class Point {
 	private int p;
 	private Float money;

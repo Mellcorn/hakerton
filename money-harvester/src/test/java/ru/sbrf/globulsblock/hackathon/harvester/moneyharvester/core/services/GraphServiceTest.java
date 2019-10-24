@@ -1,6 +1,7 @@
 package ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.core.services;
 
 import org.junit.jupiter.api.Test;
+import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.Point;
 import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.Route;
 import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.Traffic;
 
@@ -12,6 +13,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GraphServiceTest {
 	private GraphService testee = new GraphService();
+
+	private final List<Point> points = Arrays.asList(
+			Point.of(0, 1000.0f),
+			Point.of(1, 2000.0f),
+			Point.of(2, 3000.0f)
+	);
+
 
 	private final List<Route> routes = Arrays.asList(
 			Route.of(0, 0, 0), Route.of(0, 1, 1), Route.of(0, 2, 2),
@@ -27,7 +35,7 @@ class GraphServiceTest {
 
 	@Test
 	public void shouldCreateGraph() {
-		boolean b = testee.initGraph(3, routes, traffic);
+		boolean b = testee.initGraph(points, routes, traffic);
 		assertTrue(b);
 		float[][] graph = testee.getGraph();
 		printGraph(graph);

@@ -4,6 +4,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.Point;
 import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.Route;
 import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.Traffic;
 
@@ -13,9 +14,11 @@ import java.util.List;
 @Slf4j
 public class GraphService {
 	private static GraphEdge[][] matrix;
+	private static List<Point> points;
 
-	public boolean initGraph(final int pointsCount, final List<Route> routes, final List<Traffic> traffic) {
-		log.info("Start graph initialization");
+	public boolean initGraph(List<Point> points, final List<Route> routes, final List<Traffic> traffic) {
+		this.points = points;
+		int pointsCount = points.size();
 		matrix = new GraphEdge[pointsCount][pointsCount];
 
 		for (Route route : routes) {
@@ -69,6 +72,10 @@ public class GraphService {
 		return graph;
 	}
 
+
+	public List<Point> getPoints() {
+		return points;
+	}
 	@Setter
 	@ToString
 	private static class GraphEdge {

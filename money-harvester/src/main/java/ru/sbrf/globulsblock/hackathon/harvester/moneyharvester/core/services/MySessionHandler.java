@@ -98,7 +98,7 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 		}
 
 		if (routesResponse != null && pointsResponse != null && trafficResponse != null && !isGraphInitialized) { // init graph if have all data
-			graphService.initGraph(pointsResponse.getPoints().size(), routesResponse.getRoutes(), trafficResponse.getTraffic());
+			graphService.initGraph(pointsResponse.getPoints(), routesResponse.getRoutes(), trafficResponse.getTraffic());
 			isGraphInitialized = true;
 
 			log.info("Created graph: {}", graphService.getGraph());
