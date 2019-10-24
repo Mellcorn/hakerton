@@ -31,13 +31,6 @@ public class GraphService {
 			matrix[pointA][pointB] = new GraphEdge(route.getTime());
 			matrix[pointB][pointA] = new GraphEdge(route.getTime());
 		}
-		for (int i = 0; i < matrix.length; i++) {
-			for (int j = 0; j < matrix.length; j++) {
-				if (matrix[i][j] == null) {
-					matrix[i][j] = new GraphEdge(999999);
-				}
-			}
-		}
 
 
 		updateGraph(traffic);
