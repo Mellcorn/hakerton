@@ -1,0 +1,149 @@
+package algo;
+
+// Copyright 2010-2018 Google LLC
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// [START program]
+// [START import]
+import com.google.ortools.constraintsolver.*;
+import com.google.protobuf.Duration;
+
+import java.util.Arrays;
+import java.util.logging.Logger;
+// [END import]
+
+/** Minimal VRP.*/
+public class VrpCapacity {
+    static {
+        System.loadLibrary("jniortools");
+    }
+
+    private static final Logger logger = Logger.getLogger(VrpCapacity.class.getName());
+
+    /// @brief Print the solution.
+    static void printSolution(
+            CvrpDataSource data, RoutingModel routing, RoutingIndexManager manager, Assignment solution) {
+
+        // Display dropped nodes.
+        String droppedNodes = "Dropped nodes:";
+        for (int node = 0; node < routing.size(); ++node) {
+            if (routing.isStart(node) || routing.isEnd(node)) {
+                continue;
+            }
+            if (solution.value(routing.nextVar(node)) == node) {
+                droppedNodes += " " + manager.indexToNode(node);
+            }
+        }
+        logger.info(droppedNodes);
+
+        // Inspect solution.
+        long totalDistance = 0;
+        long totalLoad = 0;
+        for (int i = 0; i < data.getVehicleNumber(); ++i) {
+            long index = routing.start(i);
+            logger.info("Route for Vehicle " + i + ":");
+            long routeDistance = 0;
+            long routeLoad = 0;
+            String route = "";
+            while (!routing.isEnd(index)) {
+                long nodeIndex = manager.indexToNode(index);
+                routeLoad += data.getDemands()[(int) nodeIndex];
+                route += nodeIndex + " Load(" + routeLoad + ") -> ";
+                long previousIndex = index;
+                index = solution.value(routing.nextVar(index));
+                routeDistance += routing.getArcCostForVehicle(previousIndex, index, i);
+            }
+            route += manager.indexToNode(routing.end(i));
+            logger.info(route);
+            logger.info("Distance of the route: " + routeDistance + "m");
+            totalDistance += routeDistance;
+            totalLoad += routeLoad;
+        }
+        logger.info("Total distance of all routes: " + totalDistance + "m");
+        logger.info("Total load of all routes: " + totalLoad);
+    }
+
+    public static void main(String[] args) throws Exception {
+        CvrpDataSource data = new HackatonData();
+      //  ((HackatonData) data).resetDataRandomly(100, 10, 1500, 50, 15, 150);
+        System.out.println(Arrays.toString(data.getDemands()));
+        cvrpWithPenaltiesAndMultipleFixedDepot(data);
+    }
+
+    public static void cvrpWithPenaltiesAndMultipleFixedDepot(CvrpDataSource data) {
+
+
+
+        // Create Routing Index Manager
+        RoutingIndexManager manager =
+                new RoutingIndexManager(data.getDistanceMatrix().length,
+                        data.getVehicleNumber(),
+                        data.getVehicleStartNodes(),
+                        data.getVehicleEndNodes());
+
+        // Create Routing Model.
+        RoutingModel routing = new RoutingModel(manager);
+
+        // Create and register a transit callback.
+        final int transitCallbackIndex =
+                routing.registerTransitCallback((long fromIndex, long toIndex) -> {
+                    // Convert from routing variable Index to user NodeIndex.
+                    int fromNode = manager.indexToNode(fromIndex);
+                    int toNode = manager.indexToNode(toIndex);
+                    return data.getDistanceMatrix()[fromNode][toNode];
+                });
+
+        // Define cost of each arc.
+        routing.setArcCostEvaluatorOfAllVehicles(transitCallbackIndex);
+
+        // Add Capacity constraint.
+        final int demandCallbackIndex = routing.registerUnaryTransitCallback((long fromIndex) -> {
+            // Convert from routing variable Index to user NodeIndex.
+            int fromNode = manager.indexToNode(fromIndex);
+            return data.getDemands()[fromNode];
+        });
+        routing.addDimensionWithVehicleCapacity(demandCallbackIndex,
+                0, // null capacity slack
+                data.getVehicleCapacities(), // vehicle maximum capacities
+                true, // start cumul to zero
+                "Capacity");
+//        RoutingDimension capacityDimension = routing.getDimensionOrDie("Capacity");
+//        long index = manager.nodeToIndex(1);
+//        capacityDimension.slackVar(index).setRange(0, 20);
+//        routing.addDisjunction(new long[] {index}, 0);
+
+
+        // Allow to drop nodes.
+        long penalty = 100;
+        for (int i = 1; i < data.getDistanceMatrix().length; ++i) {
+            routing.addDisjunction(new long[] {manager.nodeToIndex(i)}, data.getPenaltiesPerPoint()[i]);
+        }
+
+        // Setting first solution heuristic.
+        RoutingSearchParameters searchParameters =
+                main.defaultRoutingSearchParameters()
+                        .toBuilder()
+                        .setFirstSolutionStrategy(FirstSolutionStrategy.Value.PATH_CHEAPEST_ARC)
+                        .setLocalSearchMetaheuristic(LocalSearchMetaheuristic.Value.GUIDED_LOCAL_SEARCH)
+                        .setTimeLimit(Duration.newBuilder().setSeconds(10).build())
+                        .setLogSearch(true)
+                        .build();
+
+        // Solve the problem.
+        Assignment solution = routing.solveWithParameters(searchParameters);
+
+        // Print solution on console.
+        printSolution(data, routing, manager, solution);
+    }
+}
+
