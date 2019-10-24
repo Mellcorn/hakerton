@@ -19,6 +19,8 @@ import com.google.ortools.constraintsolver.*;
 import com.google.protobuf.Duration;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.logging.Logger;
 // [END import]
 
@@ -78,6 +80,9 @@ public class VrpCapacity {
       //  ((HackatonData) data).resetDataRandomly(100, 10, 1500, 50, 15, 150);
         System.out.println(Arrays.toString(data.getDemands()));
         cvrpWithPenaltiesAndMultipleFixedDepot(data);
+
+        Route[] obtainOptimalRoutes = obtainOptimalRoutes(data);
+        System.out.println(Arrays.toString(obtainOptimalRoutes));
     }
 
     public static void cvrpWithPenaltiesAndMultipleFixedDepot(CvrpDataSource data) {
@@ -213,5 +218,93 @@ public class VrpCapacity {
         // Print solution on console.
         printSolution(data, routing, manager, solution);
     }
+
+    public static Route[] obtainOptimalRoutes(CvrpDataSource data) {
+
+        int countVehicle = data.getVehicleNumber();
+
+        Route routeOptimals[] = new Route[countVehicle];
+
+        // По дефолту заполняе оптимальные путями первые.
+        // Уточнить что количество путей больше количества машин
+
+        for (int i = 0; i < countVehicle; ++i) {
+
+            long[][] distanceMatrix = data.getDistanceMatrix();
+            long distance = distanceMatrix[0][i];
+
+            long []demands = data.getDemands();
+            long pointCost = demands[i];
+            if(distance != 0) {
+                double profit = (double)pointCost / (double)distance;
+                Route route = new Route(0, i, profit, pointCost);
+                routeOptimals[i] = route;
+            } else {
+                Route route = new Route(0, i, 0, pointCost);
+                routeOptimals[i] = route;
+            }
+
+        }
+
+        Arrays.sort(routeOptimals, new SortByCost());
+
+        // Проходимся по остальным точкам и обновляем оптимальные
+
+        int countDemands =  data.getDemands().length;
+
+        for (int i = countVehicle; i < countDemands; ++i) {
+
+            long[][] distanceMatrix = data.getDistanceMatrix();
+            long distance = distanceMatrix[0][i];
+
+            long []demands = data.getDemands();
+            long pointCost = demands[i];
+
+            if(distance == 0) { continue; }
+
+            double profit = (double)pointCost / (double)distance;
+
+            Route route = new Route(0, i, profit, pointCost);
+
+            // Если минимальная оптимальная точка в списке текущих оптимальных путель
+            // больше текущей, то нет смысьла обновлять список
+            int lastOptimusNumber = data.getVehicleNumber()- 1;
+            if(routeOptimals[lastOptimusNumber].profit > profit) { continue; }
+
+            for (int j = 0; j < data.getVehicleNumber(); ++j) {
+
+                if(routeOptimals[j].profit < route.profit) {
+                    routeOptimals[j] = route;
+                    break;
+                }
+            }
+        }
+
+        return routeOptimals;
+
+    }
 }
 
+class Route {
+
+    int fromPoint;
+    int toPonint;
+    long demand;
+    double profit;
+
+    public Route(int fromPoint, int toPonint, double profit, long demand) {
+        this.fromPoint = fromPoint;
+        this.toPonint = toPonint;
+        this.profit = profit;
+        this.demand = demand;
+    }
+
+}
+
+class SortByCost implements Comparator<Route> {
+    public int compare(Route a, Route b) {
+        if ( a.profit > b.profit ) return -1;
+        else if ( a.profit == b.profit ) return 0;
+        else return 1;
+    }
+}
