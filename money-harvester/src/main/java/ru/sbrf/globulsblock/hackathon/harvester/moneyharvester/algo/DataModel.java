@@ -1,4 +1,4 @@
-package algo;
+package ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.algo;
 
 public class DataModel implements CvrpDataSource {
 
