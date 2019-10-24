@@ -26,13 +26,16 @@ import java.util.logging.Logger;
 
 /** Minimal VRP.*/
 public class VrpCapacity {
+
+    /*
     static {
         System.loadLibrary("jniortools");
     }
 
     private static final Logger logger = Logger.getLogger(VrpCapacity.class.getName());
+    */
 
-    /// @brief Print the solution.
+    /*
     static void printSolution(
             CvrpDataSource data, RoutingModel routing, RoutingIndexManager manager, Assignment solution) {
 
@@ -75,6 +78,10 @@ public class VrpCapacity {
         logger.info("Total load of all routes: " + totalLoad);
     }
 
+    */
+
+
+/*
     public static void main(String[] args) throws Exception {
         CvrpDataSource data = new HackatonData();
       //  ((HackatonData) data).resetDataRandomly(100, 10, 1500, 50, 15, 150);
@@ -84,7 +91,9 @@ public class VrpCapacity {
         Route[] obtainOptimalRoutes = obtainOptimalRoutes(data);
         System.out.println(Arrays.toString(obtainOptimalRoutes));
     }
+*/
 
+/*
     public static void cvrpWithPenaltiesAndMultipleFixedDepot(CvrpDataSource data) {
 
 
@@ -132,41 +141,6 @@ public class VrpCapacity {
         for (int i = 1; i < data.getDistanceMatrix().length; ++i) {
             routing.addDisjunction(new long[] {manager.nodeToIndex(i)}, data.getPenaltiesPerPoint()[i]);
         }
-/*
-        def create_time_evaluator(data):
-        """Creates callback to get total times between locations."""
-
-        def service_time(data, node):
-        """Gets the service time for the specified location."""
-        return abs(data['demands'][node]) * data['time_per_demand_unit']
-
-        def travel_time(data, from_node, to_node):
-        """Gets the travel times between two locations."""
-        if from_node == to_node:
-        travel_time = 0
-        else:
-        travel_time = manhattan_distance(data['locations'][
-                from_node], data['locations'][to_node]) / data['vehicle_speed']
-        return travel_time
-
-        _total_time = {}
-    # precompute total time to have time callback in O(1)
-        for from_node in xrange(data['num_locations']):
-        _total_time[from_node] = {}
-        for to_node in xrange(data['num_locations']):
-        if from_node == to_node:
-        _total_time[from_node][to_node] = 0
-            else:
-        _total_time[from_node][to_node] = int(
-                service_time(data, from_node) + travel_time(
-                        data, from_node, to_node))
-
-        def time_evaluator(manager, from_node, to_node):
-        """Returns the total time between the two nodes"""
-        return _total_time[manager.IndexToNode(from_node)][manager.IndexToNode(
-                to_node)]
-
-        return time_evaluator*/
 
         // Add time window =============================================================================
         final int timeCallbackIndex = routing.registerTransitCallback((long fromIndex, long toIndex) -> {
@@ -218,93 +192,5 @@ public class VrpCapacity {
         // Print solution on console.
         printSolution(data, routing, manager, solution);
     }
-
-    public static Route[] obtainOptimalRoutes(CvrpDataSource data) {
-
-        int countVehicle = data.getVehicleNumber();
-
-        Route routeOptimals[] = new Route[countVehicle];
-
-        // По дефолту заполняе оптимальные путями первые.
-        // Уточнить что количество путей больше количества машин
-
-        for (int i = 0; i < countVehicle; ++i) {
-
-            long[][] distanceMatrix = data.getDistanceMatrix();
-            long distance = distanceMatrix[0][i];
-
-            long []demands = data.getDemands();
-            long pointCost = demands[i];
-            if(distance != 0) {
-                double profit = (double)pointCost / (double)distance;
-                Route route = new Route(0, i, profit, pointCost);
-                routeOptimals[i] = route;
-            } else {
-                Route route = new Route(0, i, 0, pointCost);
-                routeOptimals[i] = route;
-            }
-
-        }
-
-        Arrays.sort(routeOptimals, new SortByCost());
-
-        // Проходимся по остальным точкам и обновляем оптимальные
-
-        int countDemands =  data.getDemands().length;
-
-        for (int i = countVehicle; i < countDemands; ++i) {
-
-            long[][] distanceMatrix = data.getDistanceMatrix();
-            long distance = distanceMatrix[0][i];
-
-            long []demands = data.getDemands();
-            long pointCost = demands[i];
-
-            if(distance == 0) { continue; }
-
-            double profit = (double)pointCost / (double)distance;
-
-            Route route = new Route(0, i, profit, pointCost);
-
-            // Если минимальная оптимальная точка в списке текущих оптимальных путель
-            // больше текущей, то нет смысьла обновлять список
-            int lastOptimusNumber = data.getVehicleNumber()- 1;
-            if(routeOptimals[lastOptimusNumber].profit > profit) { continue; }
-
-            for (int j = 0; j < data.getVehicleNumber(); ++j) {
-
-                if(routeOptimals[j].profit < route.profit) {
-                    routeOptimals[j] = route;
-                    break;
-                }
-            }
-        }
-
-        return routeOptimals;
-
-    }
-}
-
-class Route {
-
-    int fromPoint;
-    int toPonint;
-    long demand;
-    double profit;
-
-    public Route(int fromPoint, int toPonint, double profit, long demand) {
-        this.fromPoint = fromPoint;
-        this.toPonint = toPonint;
-        this.profit = profit;
-        this.demand = demand;
-    }
-
-}
-
-class SortByCost implements Comparator<Route> {
-    public int compare(Route a, Route b) {
-        if ( a.profit > b.profit ) return -1;
-        else if ( a.profit == b.profit ) return 0;
-        else return 1;
-    }
+*/
 }

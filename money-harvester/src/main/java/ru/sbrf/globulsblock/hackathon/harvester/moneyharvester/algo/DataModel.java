@@ -1,6 +1,5 @@
 package ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.algo;
 
-import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.core.services.GraphService;
 import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.Point;
 
 import java.util.List;

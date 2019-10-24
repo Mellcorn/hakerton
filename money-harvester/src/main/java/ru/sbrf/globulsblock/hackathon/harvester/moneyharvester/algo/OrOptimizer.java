@@ -1,10 +1,12 @@
-package crvp;
+package ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.algo;
 
 import com.google.ortools.constraintsolver.*;
 import com.google.protobuf.Duration;
+import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.Car;
+import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.Point;
+import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.RouteNodes;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class OrOptimizer implements CrvpOptimizer {
 
@@ -18,6 +20,85 @@ public class OrOptimizer implements CrvpOptimizer {
 
     private long[][] timeWindows;
     private long[] timeWindow;
+
+    private Set<Integer> excludedNodeIndexes;
+    private Map<Integer, Integer> indexMapping;
+    private Map<Integer, String> carIndexToNames;
+
+    // THIS MUST UPDATED FIRST
+    // points with negative money means they should be excluded from optimization
+    // updateMoneyArrayFromPoints
+    public void updatePointsFrom(List<Point> points) {
+        excludedNodeIndexes = new HashSet<>();
+        indexMapping = new HashMap<>();
+
+        long[] moneyArrays = new long[points.size()];
+
+        int indexAfterRemoving = 0;
+        for (int i = 0; i < points.size(); i++) {
+            float money = points.get(i).getMoney();
+            if (money < 0) {
+                excludedNodeIndexes.add(i);
+            } else {
+                moneyArrays[indexAfterRemoving] = (long) money;
+                indexMapping.put(indexAfterRemoving, i);
+                indexAfterRemoving++;
+            }
+        }
+        int newLength = indexAfterRemoving + 1;
+        nodeMoneyArray = new long[newLength];
+        System.arraycopy(moneyArrays, 0, nodeMoneyArray, 0, newLength);
+        this.nodePenalties = nodeMoneyArray; // simplification as money expected much bigger then time values
+    }
+
+    // updateTimeMatrix
+    public void updateDistanceFrom(float[][] matrix) {
+        if (nodeMoneyArray == null) {
+            throw new RuntimeException("Money array must be set first");
+        }
+
+        int oldArrayLength = matrix.length;
+        int newArrayLength = nodeMoneyArray.length;
+
+        timeMatrix = new long[newArrayLength][newArrayLength];
+        int iAdjusted = 0;
+        for (int i = 0; i < oldArrayLength; i++) {
+            if (excludedNodeIndexes.contains(i)) {
+                continue;
+            }
+            int jAdjusted = 0;
+            for (int j = 0; j < oldArrayLength; j++) {
+                if (excludedNodeIndexes.contains(i)) {
+                    continue;
+                }
+                timeMatrix[iAdjusted][jAdjusted] = (long) matrix[i][j];
+                jAdjusted++;
+            }
+            iAdjusted++;
+        }
+    }
+
+    public void updateVehiclesFromCars(List<Car> cars) {
+        if (nodeMoneyArray == null) {
+            throw new RuntimeException("Money array must be set first");
+        }
+
+        int vehicleNumber = cars.size();
+        vehicleCapacites = new long[vehicleNumber];
+        startNodes = new int[vehicleNumber];
+        endNodes = new int[vehicleNumber];
+
+        carIndexToNames = new HashMap<>();
+
+        for(int i=0; i < vehicleNumber; i++) {
+            Car car = cars.get(i);
+            carIndexToNames.put(i, car.getId());
+            vehicleCapacites[i] = (long) car.getCapacity();
+            startNodes[i] = car.getStartPointId();
+            endNodes[i] = car.getEndPointId();
+        }
+    }
+
 
     @Override
     public void setTimeMatrix(long[][] timeMatrix) {
@@ -56,38 +137,38 @@ public class OrOptimizer implements CrvpOptimizer {
     }
 
     @Override
-    public Route[] calculateGreedyRoute() {
-        return new Route[0];
+    public Map<String, Integer[]> calculateGreedyRoute() {
+        return new HashMap<>();
     }
 
     @Override
-    public Route[] calculateFastRoute() {
+    public Map<String, Integer[]> calculateFastRoute() {
         return calculateRoute(true, null);
     }
 
     private void validateData() {
         if (timeMatrix == null || nodeMoneyArray == null || vehicleCapacites == null
                 || startNodes == null || endNodes == null ||
-                (timeWindow == null && timeWindows == null) ) {
+                (timeWindow == null && timeWindows == null)) {
             throw new RuntimeException("Not all data set");
         }
-        if (timeMatrix.length != nodeMoneyArray.length ) {
+        if (timeMatrix.length != nodeMoneyArray.length) {
             throw new RuntimeException("Inconsistent node arrays length");
         }
-        if (vehicleCapacites.length != startNodes.length ) {
+        if (vehicleCapacites.length != startNodes.length) {
             throw new RuntimeException("Inconsistent vehicle arrays length");
         }
-        if (startNodes.length != endNodes.length ) {
+        if (startNodes.length != endNodes.length) {
             throw new RuntimeException("Inconsistent vehicle arrays length");
         }
     }
 
     @Override
-    public Route[] calculateFullyOptimizedRoute(int timeLimit) {
+    public Map<String, Integer[]> calculateFullyOptimizedRoute(int timeLimit) {
         return calculateRoute(false, timeLimit);
     }
 
-    private Route[] calculateRoute(boolean isFastOptimization, Integer timeLimit) {
+    private Map<String, Integer[]> calculateRoute(boolean isFastOptimization, Integer timeLimit) {
         validateData();
 
         int vehicleNumber = vehicleCapacites.length;
@@ -112,8 +193,7 @@ public class OrOptimizer implements CrvpOptimizer {
                             .toBuilder()
                             .setFirstSolutionStrategy(FirstSolutionStrategy.Value.PATH_CHEAPEST_ARC)
                             .build();
-        }
-        else {
+        } else {
             searchParameters =
                     main.defaultRoutingSearchParameters()
                             .toBuilder()
@@ -163,7 +243,7 @@ public class OrOptimizer implements CrvpOptimizer {
         // =============================================================================
         // Allow to drop nodes.
         for (int i = 1; i < timeMatrix.length; ++i) {
-            routing.addDisjunction(new long[] {manager.nodeToIndex(i)}, nodePenalties[i]);
+            routing.addDisjunction(new long[]{manager.nodeToIndex(i)}, nodePenalties[i]);
         }
 
         // =============================================================================
@@ -188,8 +268,7 @@ public class OrOptimizer implements CrvpOptimizer {
                 long index = manager.nodeToIndex(i);
                 timeDimension.cumulVar(index).setRange(timeWindow[0], timeWindow[1]);
             }
-        }
-        else {
+        } else {
             for (int i = 0; i < nodesNumber; ++i) {
                 long index = manager.nodeToIndex(i);
                 timeDimension.cumulVar(index).setRange(timeWindows[i][0], timeWindows[i][1]);
@@ -203,12 +282,12 @@ public class OrOptimizer implements CrvpOptimizer {
         return routing;
     }
 
-    private Route[] getRoutes(Assignment solution, RoutingModel routing, RoutingIndexManager manager) {
+    private Map<String, Integer[]> getRoutes(Assignment solution, RoutingModel routing, RoutingIndexManager manager) {
 
         int vehicleNumber = vehicleCapacites.length;
-        Route[] routes = new Route[vehicleNumber];
+        RouteNodes[] routes = new RouteNodes[vehicleNumber];
 
-        for (int i = 0; i <vehicleNumber; ++i) {
+        for (int i = 0; i < vehicleNumber; ++i) {
             List<Integer> routeIndexes = new ArrayList<>();
 
             long index = routing.start(i);
@@ -218,12 +297,109 @@ public class OrOptimizer implements CrvpOptimizer {
             }
             routeIndexes.add(manager.indexToNode(routing.end(i)));
 
-            int[] nodesIndexes = new int[routeIndexes.size()];
-            for(int j = 0; j < routeIndexes.size(); j++) {
+            Integer[] nodesIndexes = new Integer[routeIndexes.size()];
+            for (int j = 0; j < routeIndexes.size(); j++) {
                 nodesIndexes[j] = routeIndexes.get(j);
             }
-            routes[i] = new Route(nodesIndexes);
+            routes[i] = new RouteNodes(nodesIndexes);
         }
-        return routes;
+
+        Map<String, Integer[]> carRouteMap = new HashMap<>();
+        for(int i = 0; i < routes.length; i++) {
+            String carId = carIndexToNames.get(i);
+            carRouteMap.put(carId, routes[i].getNodes());
+        }
+        return carRouteMap;
+    }
+
+    // TODO:...
+    public Map<String, Integer[]> obtainFirstRouteFromZeroPoint() {
+
+        int countVehicle = vehicleCapacites.length;
+
+        Route routeOptimals[] = new Route[countVehicle];
+
+        // По дефолту заполняе оптимальные путями первые.
+        // Уточнить что количество путей больше количества машин
+
+        for (int i = 0; i < countVehicle; ++i) {
+            long distance = timeMatrix[0][i];
+
+            long pointCost = nodeMoneyArray[i];
+            if (distance != 0) {
+                double profit = (double) pointCost / (double) distance;
+                Route route = new Route(0, i, profit);
+                routeOptimals[i] = route;
+            } else {
+                Route route = new Route(0, i, 0);
+                routeOptimals[i] = route;
+            }
+        }
+
+        Arrays.sort(routeOptimals, new SortByCost());
+
+        // Проходимся по остальным точкам и обновляем оптимальные
+
+        int countDemands = nodeMoneyArray.length;
+
+        for (int i = countVehicle; i < countDemands; ++i) {
+
+            long distance = timeMatrix[0][i];
+            long pointCost = nodeMoneyArray[i];
+
+            if (distance == 0) {
+                continue;
+            }
+
+            double profit = (double) pointCost / (double) distance;
+
+            Route route = new Route(0, i, profit);
+
+            // Если минимальная оптимальная точка в списке текущих оптимальных путель
+            // больше текущей, то нет смысьла обновлять список
+            int lastOptimusNumber = countVehicle - 1;
+            if (routeOptimals[lastOptimusNumber].profit > profit) {
+                continue;
+            }
+
+            for (int j = 0; j < countVehicle; ++j) {
+
+                if (routeOptimals[j].profit < route.profit) {
+                    routeOptimals[j] = route;
+                    break;
+                }
+            }
+        }
+
+        Map<String, Integer[]> carRouteMap = new HashMap<>();
+        for(int i = 0; i < routeOptimals.length; i++) {
+            String carId = carIndexToNames.get(i);
+            Route route = routeOptimals[i];
+            carRouteMap.put(carId, new Integer[] {route.fromPoint, route.toPoint} );
+        }
+        return carRouteMap;
+    }
+
+
+    public static class Route {
+
+        int fromPoint;
+        int toPoint;
+        double profit;
+
+        public Route(int fromPoint, int toPoint, double profit) {
+            this.fromPoint = fromPoint;
+            this.toPoint = toPoint;
+            this.profit = profit;
+        }
+
+    }
+
+    public static class SortByCost implements Comparator<Route> {
+        public int compare(Route a, Route b) {
+            if (a.profit > b.profit) return -1;
+            else if (a.profit == b.profit) return 0;
+            else return 1;
+        }
     }
 }

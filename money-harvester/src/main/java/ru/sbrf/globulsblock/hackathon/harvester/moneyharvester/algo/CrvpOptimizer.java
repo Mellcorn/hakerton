@@ -1,6 +1,8 @@
-package crvp;
+package ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.algo;
 
-import java.util.List;
+import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.RouteNodes;
+
+import java.util.Map;
 
 public interface CrvpOptimizer {
 
@@ -15,7 +17,7 @@ public interface CrvpOptimizer {
     void setTimeWindow(long[] timeWindow);
     void setTimeWindows(long[][] timeWindows);
 
-    Route[] calculateGreedyRoute();
-    Route[] calculateFastRoute();
-    Route[] calculateFullyOptimizedRoute(int timeLimit);
+    Map<String, Integer[]> calculateGreedyRoute();
+    Map<String, Integer[]> calculateFastRoute();
+    Map<String, Integer[]> calculateFullyOptimizedRoute(int timeLimit);
 }
