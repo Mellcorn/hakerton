@@ -10,6 +10,10 @@ import java.util.*;
 
 public class OrOptimizer implements CrvpOptimizer {
 
+    static {
+        System.loadLibrary("jniortools");
+    }
+
     private long[][] timeMatrix;
     private long[] nodeMoneyArray;
     private long[] nodePenalties;
@@ -222,7 +226,7 @@ public class OrOptimizer implements CrvpOptimizer {
                     // Convert from routing variable Index to user NodeIndex.
                     int fromNode = manager.indexToNode(fromIndex);
                     int toNode = manager.indexToNode(toIndex);
-                    return timeMatrix[fromNode][toNode] / (nodeMoneyArray[toNode] == 0 ? 1 : nodeMoneyArray[toNode]);
+                    return timeMatrix[fromNode][toNode] * 2000 / (nodeMoneyArray[toNode] == 0 ? 1 : nodeMoneyArray[toNode]);
                 });
 
         // Define cost of each arc.
@@ -258,7 +262,7 @@ public class OrOptimizer implements CrvpOptimizer {
 
         routing.addDimension(timeCallbackIndex, // transit callback
                 0, // allow waiting time
-                3000, // vehicle maximum capacities ???????????
+                30000, // vehicle maximum capacities ???????????
                 false, // start cumul to zero
                 "Time");
 
@@ -313,7 +317,6 @@ public class OrOptimizer implements CrvpOptimizer {
         return carRouteMap;
     }
 
-    // TODO:...
     public Map<String, Integer[]> obtainFirstRouteFromZeroPoint() {
 
         int countVehicle = vehicleCapacites.length;

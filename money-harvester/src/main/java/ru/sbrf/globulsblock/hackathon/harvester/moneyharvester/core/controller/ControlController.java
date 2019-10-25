@@ -17,17 +17,8 @@ import java.util.concurrent.ExecutionException;
 @Slf4j
 public class ControlController {
 
-	private CommunicationsService communicationsService;
-
 	@Autowired
-	public ControlController(CommunicationsService communicationsService) {
-
-		this.communicationsService = communicationsService;
-
-		try {
-			start();
-		} catch (Throwable t) {}
-	}
+	private CommunicationsService communicationsService;
 
 	@RequestMapping(value = "/start", method = RequestMethod.GET)
 	public void start() throws ExecutionException, InterruptedException {

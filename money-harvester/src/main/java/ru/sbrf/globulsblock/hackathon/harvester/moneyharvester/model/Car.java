@@ -16,6 +16,6 @@ public class Car {
 	private String id;
 	private int capacity = 1_000_000;
 	private int startPointId = 0;
-	private int endPointId = 1;
+	private int endPointId = 0;
 	private Queue<Integer> path;
 }
