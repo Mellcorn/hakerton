@@ -47,7 +47,7 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 	private static PointsResponse pointsResponse;
 	private static TrafficResponse trafficResponse;
 
-	private static OrOptimizer orOptimizer = new OrOptimizer();
+	//private static OrOptimizer orOptimizer = new OrOptimizer();
 
 	@Override
 	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -121,13 +121,15 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 			graphService.initGraph(pointsResponse.getPoints(), routesResponse.getRoutes(), trafficResponse.getTraffic());
 			isGraphInitialized = true;
 			// Call first calculation
+			OrOptimizer orOptimizer = new OrOptimizer();
 			orOptimizer.setTimeWindow(new long[] {0, 480});
 			orOptimizer.updatePointsFrom(pointsResponse.getPoints());
 			orOptimizer.updateDistanceFrom(graphService.getGraph());
 
 			carsList = createCars(this.cars);
 			orOptimizer.updateVehiclesFromCars(carsList);
-			carsRoutes = orOptimizer.calculateFastRoute();
+			carsRoutes = orOptimizer.calculateFirstRouteFromZeroPoint();
+					//orOptimizer.calculateFastRoute();
 			log.info("Fast routes: {}", carsRoutes);
 			insertRouteToCar(carsList, carsRoutes);
 			//TODO send cars
@@ -141,7 +143,14 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 					}
 				}
 			}
+
+			// TODO: refactor copypaste...
+			orOptimizer = new OrOptimizer();
+			orOptimizer.setTimeWindow(new long[] {0, 480});
 			orOptimizer.updatePointsFrom(pointsResponse.getPoints());
+			orOptimizer.updateDistanceFrom(graphService.getGraph());
+			carsList = createCars(this.cars);
+			orOptimizer.updateVehiclesFromCars(carsList);
 			Map<String, Integer[]> stringMap = orOptimizer.calculateFullyOptimizedRoute(5);
 			log.info("Created graph: {}", graphService.getGraph());
 		}

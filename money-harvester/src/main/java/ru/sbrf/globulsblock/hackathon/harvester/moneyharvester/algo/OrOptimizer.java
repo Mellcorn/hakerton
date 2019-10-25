@@ -73,7 +73,7 @@ public class OrOptimizer implements CrvpOptimizer {
             }
             int jAdjusted = 0;
             for (int j = 0; j < oldArrayLength; j++) {
-                if (excludedNodeIndexes.contains(i)) {
+                if (excludedNodeIndexes.contains(j)) {
                     continue;
                 }
                 timeMatrix[iAdjusted][jAdjusted] = (long) matrix[i][j];
@@ -81,6 +81,14 @@ public class OrOptimizer implements CrvpOptimizer {
             }
             iAdjusted++;
         }
+//        // TODO: system array copy...
+//        long[][] newTimeMatrix = new long[iAdjusted][iAdjusted]; // arrays of the same size...
+//        for (int i = 0; i < iAdjusted; i++) {
+//            for (int j = 0; j < iAdjusted; j++) {
+//                newTimeMatrix[i][j] = timeMatrix[i][j];
+//            }
+//        }
+//        timeMatrix = newTimeMatrix;
     }
 
     public void updateVehiclesFromCars(List<Car> cars) {
@@ -103,8 +111,8 @@ public class OrOptimizer implements CrvpOptimizer {
             endNodes[i] = car.getEndPointId();
         }
 
-        for (int i = vehicleNumber/2; i < vehicleNumber; i++) {
-            Car car = cars.get(i-vehicleNumber/2);
+        for (int i = vehicleNumber / 2; i < vehicleNumber; i++) {
+            Car car = cars.get(i - vehicleNumber / 2);
             carIndexToNames.put(i, "DUMMY CAR");
             vehicleCapacites[i] = 1L;
             startNodes[i] = car.getEndPointId();
@@ -297,7 +305,7 @@ public class OrOptimizer implements CrvpOptimizer {
 
     private Map<String, Integer[]> getRoutes(Assignment solution, RoutingModel routing, RoutingIndexManager manager) {
 
-        int vehicleNumber = vehicleCapacites.length/2;
+        int vehicleNumber = vehicleCapacites.length / 2;
         RouteNodes[] routes = new RouteNodes[vehicleNumber];
 
         for (int i = 0; i < vehicleNumber; ++i) {
@@ -325,7 +333,7 @@ public class OrOptimizer implements CrvpOptimizer {
         return carRouteMap;
     }
 
-    public Map<String, Integer[]> obtainFirstRouteFromZeroPoint() {
+    public Map<String, Integer[]> calculateFirstRouteFromZeroPoint() {
 
         int countVehicle = vehicleCapacites.length;
 

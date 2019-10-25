@@ -6,7 +6,7 @@ import java.util.List;
 
 public class DataModel implements CvrpDataSource {
 
-    private final long maxCapacities = 1000000;
+    private final long maxCapacities = 1_000_000;
 
     public void updateDistanceFrom(float[][] matrix) {
 
