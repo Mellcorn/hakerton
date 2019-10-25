@@ -91,7 +91,8 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 				log.info("PARSED INVALID BODY: \n {} \n {} \n {}", routesBody, pointsBody, trafficBody);
 				routesResponse = mapper.readValue(routesBody, RoutesResponse.class);
 				log.info("Parsed value {}", routesResponse);
-				pointsResponse = mapper.readValue(pointsBody, PointsResponse.class);
+				if (pointsResponse == null)
+					pointsResponse = mapper.readValue(pointsBody, PointsResponse.class);
 				log.info("Parsed value {}", pointsResponse);
 				trafficResponse = mapper.readValue(trafficBody, TrafficResponse.class);
 				log.info("Parsed value {}", trafficResponse);
@@ -100,7 +101,8 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 				routesResponse = mapper.readValue(jsonBody, RoutesResponse.class);
 				log.info("Parsed value {}", routesResponse);
 			} else if (jsonBody.startsWith("{ \"points\"")) {
-				pointsResponse = mapper.readValue(jsonBody, PointsResponse.class);
+				if (pointsResponse == null)
+					pointsResponse = mapper.readValue(jsonBody, PointsResponse.class);
 				log.info("Parsed value {}", pointsResponse);
 			} else if (jsonBody.startsWith("{ \"traffic\"")) {
 				trafficResponse = mapper.readValue(jsonBody, TrafficResponse.class);
