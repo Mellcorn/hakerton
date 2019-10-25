@@ -13,8 +13,11 @@ import java.util.Queue;
 @AllArgsConstructor(staticName = "of", access = AccessLevel.PUBLIC)
 public class Car {
 	private String id;
+	@Builder.Default
 	private int capacity = 1_000_000;
+	@Builder.Default
 	private int startPointId = 0;
-	private int endPointId = 0;
+	@Builder.Default
+	private int endPointId = 1;
 	private Queue<Integer> path;
 }
