@@ -88,19 +88,27 @@ public class OrOptimizer implements CrvpOptimizer {
             throw new RuntimeException("Money array must be set first");
         }
 
-        int vehicleNumber = cars.size();
+        int vehicleNumber = cars.size() * 2;
         vehicleCapacites = new long[vehicleNumber];
         startNodes = new int[vehicleNumber];
         endNodes = new int[vehicleNumber];
 
         carIndexToNames = new HashMap<>();
 
-        for(int i=0; i < vehicleNumber; i++) {
+        for (int i = 0; i < vehicleNumber / 2; i++) {
             Car car = cars.get(i);
             carIndexToNames.put(i, car.getId());
             vehicleCapacites[i] = (long) car.getCapacity();
             startNodes[i] = car.getStartPointId();
             endNodes[i] = car.getEndPointId();
+        }
+
+        for (int i = vehicleNumber/2; i < vehicleNumber; i++) {
+            Car car = cars.get(i-vehicleNumber/2);
+            carIndexToNames.put(i, "DUMMY CAR");
+            vehicleCapacites[i] = 1L;
+            startNodes[i] = car.getEndPointId();
+            endNodes[i] = car.getStartPointId();
         }
     }
 
@@ -174,7 +182,7 @@ public class OrOptimizer implements CrvpOptimizer {
     }
 
     private Map<String, Integer[]> calculateRoute(boolean isFastOptimization, Integer timeLimit) {
-        validateData();
+        //validateData();
 
         int vehicleNumber = vehicleCapacites.length;
         int nodesNumber = timeMatrix.length;
@@ -289,7 +297,7 @@ public class OrOptimizer implements CrvpOptimizer {
 
     private Map<String, Integer[]> getRoutes(Assignment solution, RoutingModel routing, RoutingIndexManager manager) {
 
-        int vehicleNumber = vehicleCapacites.length;
+        int vehicleNumber = vehicleCapacites.length/2;
         RouteNodes[] routes = new RouteNodes[vehicleNumber];
 
         for (int i = 0; i < vehicleNumber; ++i) {
@@ -310,7 +318,7 @@ public class OrOptimizer implements CrvpOptimizer {
         }
 
         Map<String, Integer[]> carRouteMap = new HashMap<>();
-        for(int i = 0; i < routes.length; i++) {
+        for (int i = 0; i < routes.length; i++) {
             String carId = carIndexToNames.get(i);
             carRouteMap.put(carId, routes[i].getNodes());
         }
@@ -376,10 +384,10 @@ public class OrOptimizer implements CrvpOptimizer {
         }
 
         Map<String, Integer[]> carRouteMap = new HashMap<>();
-        for(int i = 0; i < routeOptimals.length; i++) {
+        for (int i = 0; i < routeOptimals.length; i++) {
             String carId = carIndexToNames.get(i);
             Route route = routeOptimals[i];
-            carRouteMap.put(carId, new Integer[] {route.fromPoint, route.toPoint} );
+            carRouteMap.put(carId, new Integer[]{route.fromPoint, route.toPoint});
         }
         return carRouteMap;
     }
