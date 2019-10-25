@@ -119,24 +119,30 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 
 							//TODO маршрут концился, нужен новый!
 
-//							OrOptimizer orOptimizer = new OrOptimizer();
-//							orOptimizer.setTimeWindow(new long[] {0, 480});
-//							orOptimizer.updatePointsFrom(pointsResponse.getPoints());
-//							orOptimizer.updateDistanceFrom(graphService.getGraph());
-//
-//							List<Car> first =  new ArrayList<>();
-//							first.add(car);
-//
-//							orOptimizer.updateVehiclesFromCars(first);
-//							Map<String, Integer[]> firstRout = orOptimizer.calculateFullyOptimizedRoute(5);
-//
-//							carsRoutes
-//
-//							List<Car>
-//
-//							carsRoutes
-//							log.info("Fast routes: {}", carsRoutes);
-//							insertRouteToCar(carsList, carsRoutes);
+							OrOptimizer orOptimizer = new OrOptimizer();
+							orOptimizer.setTimeWindow(new long[] {0, 480});
+							orOptimizer.updatePointsFrom(pointsResponse.getPoints());
+							orOptimizer.updateDistanceFrom(graphService.getGraph());
+
+							orOptimizer.updateVehiclesFromCars(carsList);
+
+							Map<String, Integer[]> newRouts = orOptimizer.calculateFullyOptimizedRoute(5);
+
+
+							log.info("Fast routes: {}", carsRoutes);
+							insertRouteToCar(carsList, carsRoutes);
+
+							Integer pointIdUpdate = car.getPath().poll();
+							sendCar(session, pointIdUpdate, car.getId());
+							for (int i = 0; i < pointsResponse.getPoints().size(); i++) {
+								Point point = pointsResponse.getPoints().get(i);
+								if (point.getP() == pointId) {
+									pointsResponse.getPoints().set(i, point.withMoney(-1f));
+								}
+							}
+
+							return;
+
 						}
 
 						sendCar(session, pointId, car.getId());
@@ -193,6 +199,14 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 
 	private void sendCar(WebSocketSession session, int pointId, String carId) throws IOException {
 		session.sendMessage(new TextMessage("{ \"goto\": " + pointId + ", \"car\": \"" + carId + "\" }"));
+	}
+
+	private void insertRouteToCar(Car car, Map<String, Integer[]> carsRoutes) {
+
+		for (int i = 1; i < carsRoutes.get(car.getId()).length; i++) {
+			car.getPath().add(carsRoutes.get(car.getId())[i]);
+		}
+
 	}
 
 	private void insertRouteToCar(List<Car> cars, Map<String, Integer[]> carsRoutes) {
