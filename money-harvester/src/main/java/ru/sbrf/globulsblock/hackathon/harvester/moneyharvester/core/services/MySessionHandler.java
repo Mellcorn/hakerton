@@ -129,26 +129,25 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 							Map<String, Integer[]> newRouts = orOptimizer.calculateFullyOptimizedRoute(5);
 
 
-							log.info("Fast routes: {}", carsRoutes);
-							insertRouteToCar(carsList, carsRoutes);
+							log.info("Fast routes: {}", newRouts);
+							insertRouteToCar(carsList, newRouts);
 
-							Integer pointIdUpdate = car.getPath().poll();
-							sendCar(session, pointIdUpdate, car.getId());
-							for (int i = 0; i < pointsResponse.getPoints().size(); i++) {
-								Point point = pointsResponse.getPoints().get(i);
-								if (point.getP() == pointId) {
-									pointsResponse.getPoints().set(i, point.withMoney(-1f));
-								}
-							}
+//							Integer pointIdUpdate = car.getPath().poll();
+//							sendCar(session, pointIdUpdate, car.getId());
+//							for (int i = 0; i < pointsResponse.getPoints().size(); i++) {
+//								Point point = pointsResponse.getPoints().get(i);
+//								if (point.getP() == pointId && pointId != 1 && pointId != 0) {
+//									pointsResponse.getPoints().set(i, point.withMoney(-1f));
+//								}
+//							}
 
-							return;
-
+							pointId = car.getPath().poll();
 						}
 
 						sendCar(session, pointId, car.getId());
 						for (int i = 0; i < pointsResponse.getPoints().size(); i++) {
 							Point point = pointsResponse.getPoints().get(i);
-							if (point.getP() == pointId) {
+							if (point.getP() == pointId && pointId != 1 && pointId != 0) {
 								pointsResponse.getPoints().set(i, point.withMoney(-1f));
 							}
 						}
