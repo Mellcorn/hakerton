@@ -242,7 +242,7 @@ public class OrOptimizer implements CrvpOptimizer {
                     // Convert from routing variable Index to user NodeIndex.
                     int fromNode = manager.indexToNode(fromIndex);
                     int toNode = manager.indexToNode(toIndex);
-                    return timeMatrix[fromNode][toNode] * 20_000 / (nodeMoneyArray[toNode] == 0 ? 1 : nodeMoneyArray[toNode]);
+                    return timeMatrix[fromNode][toNode] * 50_000 / (nodeMoneyArray[toNode] == 0 ? 1 : nodeMoneyArray[toNode]);
                 });
 
         // Define cost of each arc.
