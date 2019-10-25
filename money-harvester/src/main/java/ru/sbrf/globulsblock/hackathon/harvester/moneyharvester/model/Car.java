@@ -1,15 +1,12 @@
 package ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.Value;
+import lombok.*;
 import lombok.experimental.Wither;
 
 import java.util.Queue;
 
-@Value
+@Setter
+@Getter
 @Wither
 @Builder
 @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)

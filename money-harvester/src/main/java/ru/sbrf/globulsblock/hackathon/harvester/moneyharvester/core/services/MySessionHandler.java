@@ -116,7 +116,27 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 						Integer pointId = car.getPath().poll();
 
 						if (pointId == null) {
+
 							//TODO маршрут концился, нужен новый!
+
+//							OrOptimizer orOptimizer = new OrOptimizer();
+//							orOptimizer.setTimeWindow(new long[] {0, 480});
+//							orOptimizer.updatePointsFrom(pointsResponse.getPoints());
+//							orOptimizer.updateDistanceFrom(graphService.getGraph());
+//
+//							List<Car> first =  new ArrayList<>();
+//							first.add(car);
+//
+//							orOptimizer.updateVehiclesFromCars(first);
+//							Map<String, Integer[]> firstRout = orOptimizer.calculateFullyOptimizedRoute(5);
+//
+//							carsRoutes
+//
+//							List<Car>
+//
+//							carsRoutes
+//							log.info("Fast routes: {}", carsRoutes);
+//							insertRouteToCar(carsList, carsRoutes);
 						}
 
 						sendCar(session, pointId, car.getId());
@@ -151,6 +171,7 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 			insertRouteToCar(carsList, carsRoutes);
 			//TODO send cars
 			for (Car car : carsList) {
+				car.setStartPointId(1);
 				Integer pointId = car.getPath().poll();
 				sendCar(session, pointId, car.getId());
 				for (int i = 0; i < pointsResponse.getPoints().size(); i++) {

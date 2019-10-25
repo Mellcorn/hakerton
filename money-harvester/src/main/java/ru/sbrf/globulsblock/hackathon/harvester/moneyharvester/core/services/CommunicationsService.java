@@ -31,7 +31,7 @@ public class CommunicationsService {
 //		String url = "ws://172.30.11.123:4242/";
 		String url = "ws://localhost:8080/race";
 //		String url = "ws://172.30.9.50:8080/race";
-//			String url = "ws://172.15.9.50:8080/race";
+			//String url = "ws://172.30.9.50:3000/race";
 			session = client.doHandshake(handler, url).get();
 
 
