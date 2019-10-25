@@ -121,33 +121,34 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 				for (Car car : carsList) {
 					if (car.getId().equals(carArrivedResponse.getCar())) {
 						Integer pointId = car.getPath().poll();
-                        Integer[] points = carsRoutes.get(car.getId()); // current car route (!)
+						Integer[] points = carsRoutes.get(car.getId()); // current car route (!)
 
-                        float[][] getGraph = graphService.getGraph(); // base graph no traffic
+						float[][] getGraph = graphService.getGraph(); // base graph no traffic
 
-                        for (int i = 0; i < points.length; i++) {
+//                        for (int i = 0; i < points.length; i++) {
+//
+//                            if (points[i].equals(curentPoint)) {
+//                                int nextI = i + 1;
+//
+//                                if (nextI < points.length) {
+//
+//                                    int nextPoint = points[nextI];
+//
+//                                    // ?????
+//                                    float shortcutToBase = (getGraph[curentPoint][nextPoint] * 2) + (getGraph[nextPoint][1] * 2);
+//
+//                                    if (shortcutToBase > duration) {
+//                                        sendCar(session, 1, car.getId());
+//                                        return;
+//                                    }
+//
+//                                }
+//
+//
+//                            }
+					}
 
-                            if (points[i].equals(curentPoint)) {
-                                int nextI = i + 1;
-
-                                if (nextI < points.length) {
-
-                                    int nextPoint = points[nextI];
-
-                                    // ?????
-                                    float shortcutToBase = (getGraph[curentPoint][nextPoint] * 2) + (getGraph[nextPoint][1] * 2);
-
-                                    if (shortcutToBase > duration) {
-                                        sendCar(session, 1, car.getId());
-                                        return;
-                                    }
-
-                                }
-
-
-                            }
-
-                        }
+				}
 
 
                         if (pointId == null) {
