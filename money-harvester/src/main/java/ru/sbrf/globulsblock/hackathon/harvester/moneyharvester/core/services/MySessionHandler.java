@@ -29,6 +29,7 @@ import java.util.Map;
 @Slf4j
 @Component
 public class MySessionHandler extends AbstractWebSocketHandler {
+
 	@Autowired
 	private ObjectMapper mapper;
 	@Autowired
@@ -113,11 +114,43 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 			} else if (jsonBody.startsWith("{ \"point\":")) {
 				CarArrivedResponse carArrivedResponse = mapper.readValue(jsonBody, CarArrivedResponse.class);
 				//todo call recalculation
+                float duration = carArrivedResponse.getDuration();
+
+                Integer curentPoint = carArrivedResponse.getPoint();
+
 				for (Car car : carsList) {
 					if (car.getId().equals(carArrivedResponse.getCar())) {
 						Integer pointId = car.getPath().poll();
+                        Integer[] points = carsRoutes.get(car.getId()); // current car route (!)
 
-						if (pointId == null) {
+                        float[][] getGraph = graphService.getGraph(); // base graph no traffic
+
+                        for (int i = 0; i < points.length; i++) {
+
+                            if (points[i].equals(curentPoint)) {
+                                int nextI = i + 1;
+
+                                if (nextI < points.length) {
+
+                                    int nextPoint = points[nextI];
+
+                                    // ?????
+                                    float shortcutToBase = (getGraph[curentPoint][nextPoint] * 2) + (getGraph[nextPoint][1] * 2);
+
+                                    if (shortcutToBase > duration) {
+                                        sendCar(session, 1, car.getId());
+                                        return;
+                                    }
+
+                                }
+
+
+                            }
+
+                        }
+
+
+                        if (pointId == null) {
 
 							//TODO маршрут концился, нужен новый!
 
@@ -194,43 +227,43 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 //			orOptimizer.setTimeWindow(new long[] {0, 480});
 //			orOptimizer.updatePointsFrom(pointsResponse.getPoints());
 //			Map<String, Integer[]> stringMap = orOptimizer.calculateFullyOptimizedRoute(5);
-			log.info("Created graph: {}", graphService.getGraph());
-		}
-	}
+            log.info("Created graph: {}", graphService.getGraph());
+        }
+    }
 
-	private void sendCar(WebSocketSession session, int pointId, String carId) throws IOException {
-		session.sendMessage(new TextMessage("{ \"goto\": " + pointId + ", \"car\": \"" + carId + "\" }"));
-	}
+    private void sendCar(WebSocketSession session, int pointId, String carId) throws IOException {
+        session.sendMessage(new TextMessage("{ \"goto\": " + pointId + ", \"car\": \"" + carId + "\" }"));
+    }
 
-	private void insertRouteToCar(Car car, Map<String, Integer[]> carsRoutes) {
+    private void insertRouteToCar(Car car, Map<String, Integer[]> carsRoutes) {
 
-		for (int i = 1; i < carsRoutes.get(car.getId()).length; i++) {
-			car.getPath().add(carsRoutes.get(car.getId())[i]);
-		}
+        for (int i = 1; i < carsRoutes.get(car.getId()).length; i++) {
+            car.getPath().add(carsRoutes.get(car.getId())[i]);
+        }
 
-	}
+    }
 
-	private void insertRouteToCar(List<Car> cars, Map<String, Integer[]> carsRoutes) {
-		for (Car car : cars) {
-			for (int i = 1; i < carsRoutes.get(car.getId()).length; i++) {
-				car.getPath().add(carsRoutes.get(car.getId())[i]);
-			}
-		}
-	}
+    private void insertRouteToCar(List<Car> cars, Map<String, Integer[]> carsRoutes) {
+        for (Car car : cars) {
+            for (int i = 1; i < carsRoutes.get(car.getId()).length; i++) {
+                car.getPath().add(carsRoutes.get(car.getId())[i]);
+            }
+        }
+    }
 
-	private List<Car> createCars(List<String> carsIds) {
-		ArrayList<Car> result = new ArrayList<>();
-		for (String carsId : carsIds) {
-			result.add(createCar(carsId));
-		}
-		return result;
-	}
+    private List<Car> createCars(List<String> carsIds) {
+        ArrayList<Car> result = new ArrayList<>();
+        for (String carsId : carsIds) {
+            result.add(createCar(carsId));
+        }
+        return result;
+    }
 
-	private Car createCar(String id) {
-		return Car.builder()
-				.id(id)
-				.path(new ArrayDeque<>())
-				.build();
-	}
+    private Car createCar(String id) {
+        return Car.builder()
+                .id(id)
+                .path(new ArrayDeque<>())
+                .build();
+    }
 
 }

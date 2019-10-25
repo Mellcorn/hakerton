@@ -14,4 +14,5 @@ public class CarArrivedResponse {
 	private int point;
 	private String car;
 	private int carsum;
+	private float duration;
 }
