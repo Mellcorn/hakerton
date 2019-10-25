@@ -29,9 +29,9 @@ public class CommunicationsService {
 
 		StandardWebSocketClient client = new StandardWebSocketClient(new WsWebSocketContainer());
 //		String url = "ws://172.30.11.123:4242/";
-		//String url = "ws://localhost:8080/race";
-		//String url = "ws://172.30.9.50:8080/race";
-			String url = "ws://172.30.9.50:8080/race";
+		String url = "ws://localhost:8080/race";
+//		String url = "ws://172.30.9.50:8080/race";
+//			String url = "ws://172.15.9.50:8080/race";
 			session = client.doHandshake(handler, url).get();
 
 

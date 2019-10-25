@@ -221,7 +221,7 @@ public class OrOptimizer implements CrvpOptimizer {
                             .setFirstSolutionStrategy(FirstSolutionStrategy.Value.PATH_CHEAPEST_ARC)
                             .setLocalSearchMetaheuristic(LocalSearchMetaheuristic.Value.GUIDED_LOCAL_SEARCH)
                             .setTimeLimit(Duration.newBuilder().setSeconds(timeLimit).build())
-                            .setLogSearch(true)
+                           // .setLogSearch(true)
                             .build();
         }
 

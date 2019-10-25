@@ -111,6 +111,24 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 			} else if (jsonBody.startsWith("{ \"point\":")) {
 				CarArrivedResponse carArrivedResponse = mapper.readValue(jsonBody, CarArrivedResponse.class);
 				//todo call recalculation
+				for (Car car : carsList) {
+					if (car.getId().equals(carArrivedResponse.getCar())) {
+						Integer pointId = car.getPath().poll();
+
+						if (pointId == null) {
+							//TODO маршрут концился, нужен новый!
+						}
+
+						sendCar(session, pointId, car.getId());
+						for (int i = 0; i < pointsResponse.getPoints().size(); i++) {
+							Point point = pointsResponse.getPoints().get(i);
+							if (point.getP() == pointId) {
+								pointsResponse.getPoints().set(i, point.withMoney(-1f));
+							}
+						}
+					}
+				}
+
 				log.info("Parsed value {}", carArrivedResponse);
 			}
 		} catch (JsonProcessingException e) {
@@ -128,8 +146,7 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 
 			carsList = createCars(this.cars);
 			orOptimizer.updateVehiclesFromCars(carsList);
-			carsRoutes = orOptimizer.calculateFirstRouteFromZeroPoint();
-					//orOptimizer.calculateFastRoute();
+			carsRoutes = orOptimizer.calculateFullyOptimizedRoute(5);
 			log.info("Fast routes: {}", carsRoutes);
 			insertRouteToCar(carsList, carsRoutes);
 			//TODO send cars
@@ -145,13 +162,10 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 			}
 
 			// TODO: refactor copypaste...
-			orOptimizer = new OrOptimizer();
-			orOptimizer.setTimeWindow(new long[] {0, 480});
-			orOptimizer.updatePointsFrom(pointsResponse.getPoints());
-			orOptimizer.updateDistanceFrom(graphService.getGraph());
-			carsList = createCars(this.cars);
-			orOptimizer.updateVehiclesFromCars(carsList);
-			Map<String, Integer[]> stringMap = orOptimizer.calculateFullyOptimizedRoute(5);
+//			orOptimizer = new OrOptimizer();
+//			orOptimizer.setTimeWindow(new long[] {0, 480});
+//			orOptimizer.updatePointsFrom(pointsResponse.getPoints());
+//			Map<String, Integer[]> stringMap = orOptimizer.calculateFullyOptimizedRoute(5);
 			log.info("Created graph: {}", graphService.getGraph());
 		}
 	}
