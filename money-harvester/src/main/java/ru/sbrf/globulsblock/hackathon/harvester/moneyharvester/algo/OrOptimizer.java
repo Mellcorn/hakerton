@@ -267,6 +267,7 @@ public class OrOptimizer implements CrvpOptimizer {
             routing.addDisjunction(new long[]{manager.nodeToIndex(i)}, nodePenalties[i]);
         }
 
+        /*
         // =============================================================================
         // Add time window
         final int timeCallbackIndex = routing.registerTransitCallback((long fromIndex, long toIndex) -> {
@@ -299,7 +300,8 @@ public class OrOptimizer implements CrvpOptimizer {
         for (int i = 0; i < vehicleNumber; ++i) {
             routing.addVariableMinimizedByFinalizer(timeDimension.cumulVar(routing.start(i)));
             routing.addVariableMinimizedByFinalizer(timeDimension.cumulVar(routing.end(i)));
-        }
+        }*/
+
         return routing;
     }
 
