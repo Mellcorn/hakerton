@@ -5,10 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.Value;
+import lombok.experimental.Wither;
 
 import java.util.Queue;
 
 @Value
+@Wither
 @Builder
 @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
 @AllArgsConstructor(staticName = "of", access = AccessLevel.PUBLIC)

@@ -13,6 +13,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.AbstractWebSocketHandler;
 import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.algo.OrOptimizer;
 import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.Car;
+import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.Point;
 import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.rest.CarArrivedResponse;
 import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.rest.PointsResponse;
 import ru.sbrf.globulsblock.hackathon.harvester.moneyharvester.model.rest.RegisterResponse;
@@ -131,8 +132,17 @@ public class MySessionHandler extends AbstractWebSocketHandler {
 			insertRouteToCar(carsList, carsRoutes);
 			//TODO send cars
 			for (Car car : carsList) {
-				sendCar(session, car.getPath().poll(), car.getId());
+				Integer pointId = car.getPath().poll();
+				sendCar(session, pointId, car.getId());
+				for (int i = 0; i < pointsResponse.getPoints().size(); i++) {
+					Point point = pointsResponse.getPoints().get(i);
+					if (point.getP() == pointId) {
+						pointsResponse.getPoints().set(i, point.withMoney(-1f));
+					}
+				}
 			}
+			orOptimizer.updatePointsFrom(pointsResponse.getPoints());
+			Map<String, Integer[]> stringMap = orOptimizer.calculateFullyOptimizedRoute(5);
 			log.info("Created graph: {}", graphService.getGraph());
 		}
 	}
